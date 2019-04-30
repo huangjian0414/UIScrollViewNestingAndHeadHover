@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 typealias Blockkk = (_ scroll:UIScrollView)->()
-class testTbViewCell: UITableViewCell ,UITableViewDataSource,UITableViewDelegate{
+class testTbViewCell: UITableViewCell ,UIScrollViewDelegate{
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setUpUI()
@@ -21,42 +21,81 @@ class testTbViewCell: UITableViewCell ,UITableViewDataSource,UITableViewDelegate
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView != scroll else {
+            return
+        }
         if didScroll != nil {
             didScroll!(scrollView)
         }
+
     }
+
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        guard scrollView == scroll else {
+            return
+        }
+        let index = scrollView.contentOffset.x/scrollView.bounds.size.width
+        let vc = viewControllers[Int(index)]
+        vc.view.frame=CGRect.init(x: scrollView.contentOffset.x, y: 0, width: scrollView.bounds.width, height: scrollView.bounds.height)
+        scrollView.addSubview(vc.view)
+    }
+
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        guard scrollView == scroll else {
+            return
+        }
+        scrollViewDidEndScrollingAnimation(scrollView)
+        let index = Int(scrollView.contentOffset.x/scrollView.bounds.width)
+        scrollView.setContentOffset(CGPoint.init(x: CGFloat(index)*scrollView.bounds.width, y: 0), animated: true)
+
+    }
+    
     var didScroll : Blockkk?
-    var titleView : testPageTitleView?
-    var viewControllers : [UIViewController] = [UIViewController]()
+    var titleView : testPageTitleView!
+    var viewControllers : [UIViewController] = {
+        return [firstViewController(),secondViewController(),thirtyViewController()]
+    }()
     
+    var scroll : UIScrollView!
+    var titleHeight : CGFloat = 30.0
     
+    private var titles : [String] = {
+        return ["hehe","haha","enen"]
+    }()
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        scroll.frame=bounds
+        scroll.contentSize=CGSize.init(width: bounds.width*CGFloat(titles.count), height: 0)
+        titleView.frame=CGRect.init(x: 0, y: 0, width: bounds.width, height: titleHeight)
+        
+        scrollViewDidEndScrollingAnimation(scroll)
+        for i in 0..<viewControllers.count {
+            let v = viewControllers[i]
+            if v.test_scrollView != nil
+            {
+                v.test_scrollView?.delegate=self //如果控制器设置了test_scrollView，将代理搞进来，不太好
+            }
+        }
+    }
+
     private func setUpUI()
     {
-        let scroll = UIScrollView.init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 808))
-        scroll.contentSize=CGSize.init(width: UIScreen.main.bounds.width*2, height: 0)
+        scroll = UIScrollView.init()
+        scroll.delegate=self
+        scroll.bounces=false
+        scroll.isPagingEnabled=true
+        scroll.showsVerticalScrollIndicator=false
         contentView.addSubview(scroll)
         
-        let pageTitleView = testPageTitleView.init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 30), titles: ["hehe","haha"])
+        if #available(iOS 11.0, *) {
+            scroll.contentInsetAdjustmentBehavior = .never
+        }
         
-        contentView.addSubview(pageTitleView)
-        titleView = pageTitleView
+        titleView = testPageTitleView.init(frame: CGRect.zero, titles: titles)
+        titleView.backgroundColor=UIColor.orange
+        contentView.addSubview(titleView)
 
-        
-        let table = UITableView.init(frame: CGRect.init(x: 0, y: 30, width: UIScreen.main.bounds.width, height: 808-30), style: .plain)
-        table.delegate=self
-        table.dataSource=self
-        table.register(UITableViewCell.self, forCellReuseIdentifier: "999")
-        scroll.addSubview(table)
     }
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 30
-    }
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "999")
-        cell?.textLabel?.text="第\(indexPath.row+1)行"
-        return cell!
-    }
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 50
-    }
+    
 }

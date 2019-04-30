@@ -17,6 +17,15 @@ class testTbView:  UITableView ,UIGestureRecognizerDelegate{
 class testView: UIView ,UITableViewDelegate,UITableViewDataSource{
     
     private var hjTbView : testTbView?
+    private var headerHeight : CGFloat = 0.0
+    
+    var headerView : UIView? {
+        didSet{
+            headerHeight = headerView?.bounds.height ?? 0.0
+            hjTbView?.tableHeaderView=headerView
+        }
+    }
+    
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -31,6 +40,8 @@ class testView: UIView ,UITableViewDelegate,UITableViewDataSource{
         table.delegate=self
         table.dataSource=self
         table.register(testTbViewCell.self, forCellReuseIdentifier: "haha")
+        table.tableHeaderView=UIView.init(frame: CGRect.init(x: 0, y: 0, width: 0, height: 0.0001))
+        table.showsVerticalScrollIndicator=false
         addSubview(table)
         hjTbView=table
         
@@ -39,10 +50,10 @@ class testView: UIView ,UITableViewDelegate,UITableViewDataSource{
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if !canScroll {
-            scrollView.contentOffset = CGPoint(x: 0.0, y: 400)
+            scrollView.contentOffset = CGPoint(x: 0.0, y: headerHeight)
         }
-        if scrollView.contentOffset.y > 400 {
-            scrollView.contentOffset = CGPoint(x: 0.0, y: 400)
+        if scrollView.contentOffset.y > headerHeight && headerHeight != 0 {
+            scrollView.contentOffset = CGPoint(x: 0.0, y: headerHeight)
         }
     }
     
@@ -73,16 +84,9 @@ class testView: UIView ,UITableViewDelegate,UITableViewDataSource{
         return cell
     }
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return frame.height - 34
+        return frame.height 
     }
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let header = UIView.init()
-        header.backgroundColor=UIColor.purple
-        return header
-    }
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 400
-    }
+    
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
         return UIView.init()
     }

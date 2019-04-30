@@ -19,6 +19,9 @@ class ViewController: UIViewController{
     }
     private func setUpUI(){
         let table = testView.init(frame: CGRect.init(x: 0, y: 88, width: view.bounds.width, height: UIScreen.main.bounds.height-88))
+        let v = UIView.init(frame: CGRect.init(x: 0, y: 0, width: view.bounds.width, height: 400))
+        v.backgroundColor=UIColor.red
+        table.headerView=v
         view.addSubview(table)
     }
 
