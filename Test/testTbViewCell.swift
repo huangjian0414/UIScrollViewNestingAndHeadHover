@@ -74,7 +74,10 @@ class testTbViewCell: UITableViewCell ,UIScrollViewDelegate{
             let v = viewControllers[i]
             if v.test_scrollView != nil
             {
-                v.test_scrollView?.delegate=self //如果控制器设置了test_scrollView，将代理搞进来，不太好
+                if !v.responds(to: #selector(scrollViewDidScroll(_:)))
+                {
+                    v.test_scrollView?.delegate=self //如果控制器设置了test_scrollView，将代理搞进来，不太好
+                }
             }
         }
     }
