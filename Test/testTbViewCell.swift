@@ -19,25 +19,20 @@ class testTbViewCell: UITableViewCell ,UIScrollViewDelegate{
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard scrollView != scroll else {
-            return
-        }
-        if didScroll != nil {
-            didScroll!(scrollView)
-        }
-
-    }
 
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-        guard scrollView == scroll else {
-            return
-        }
+        guard scrollView == scroll else {return}
         let index = scrollView.contentOffset.x/scrollView.bounds.size.width
         let vc = viewControllers[Int(index)]
         vc.view.frame=CGRect.init(x: scrollView.contentOffset.x, y: 0, width: scrollView.bounds.width, height: scrollView.bounds.height)
         scrollView.addSubview(vc.view)
+        guard vc.test_scrollView != nil else {return}
+        vc.test_scrollView?.scrollHandle = {(sc) in
+            guard sc != self.scroll else {return}
+            if self.didScroll != nil {
+                self.didScroll!(sc)
+            }
+        }
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
@@ -70,16 +65,7 @@ class testTbViewCell: UITableViewCell ,UIScrollViewDelegate{
         titleView.frame=CGRect.init(x: 0, y: 0, width: bounds.width, height: titleHeight)
         
         scrollViewDidEndScrollingAnimation(scroll)
-        for i in 0..<viewControllers.count {
-            let v = viewControllers[i]
-            if v.test_scrollView != nil
-            {
-                if !v.responds(to: #selector(scrollViewDidScroll(_:)))
-                {
-                    v.test_scrollView?.delegate=self //如果控制器设置了test_scrollView，将代理搞进来，不太好
-                }
-            }
-        }
+
     }
 
     private func setUpUI()
@@ -99,6 +85,7 @@ class testTbViewCell: UITableViewCell ,UIScrollViewDelegate{
         titleView.backgroundColor=UIColor.orange
         contentView.addSubview(titleView)
 
+        
     }
     
 }
