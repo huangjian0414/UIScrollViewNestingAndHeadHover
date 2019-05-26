@@ -9,7 +9,9 @@
 import Foundation
 import UIKit
 
-typealias Blockkk = (_ scroll:UIScrollView)->()
+typealias Blockkk = (_ scroll:UIScrollView?)->()
+typealias Blockkk2 = (_ isSuperEnable:Bool)->()
+
 class testTbViewCell: UITableViewCell ,UIScrollViewDelegate{
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -22,11 +24,17 @@ class testTbViewCell: UITableViewCell ,UIScrollViewDelegate{
 
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         guard scrollView == scroll else {return}
-        let index = scrollView.contentOffset.x/scrollView.bounds.size.width
+        let index = scroll.contentOffset.x/scroll.bounds.size.width
         let vc = viewControllers[Int(index)]
-        vc.view.frame=CGRect.init(x: scrollView.contentOffset.x, y: 0, width: scrollView.bounds.width, height: scrollView.bounds.height)
-        scrollView.addSubview(vc.view)
-        guard vc.test_scrollView != nil else {return}
+        vc.view.frame=CGRect.init(x: scroll.contentOffset.x, y: 0, width: scroll.bounds.width, height: scroll.bounds.height)
+        vc.view.tag = Int(index) + 1000
+        if (scroll.viewWithTag(Int(index) + 1000) == nil) {
+            scroll.addSubview(vc.view)
+        }
+        guard vc.test_scrollView != nil else {
+            self.didScroll!(nil)
+            return
+        }
         vc.test_scrollView?.scrollHandle = {(sc) in
             guard sc != self.scroll else {return}
             if self.didScroll != nil {
@@ -44,8 +52,19 @@ class testTbViewCell: UITableViewCell ,UIScrollViewDelegate{
         scrollView.setContentOffset(CGPoint.init(x: CGFloat(index)*scrollView.bounds.width, y: 0), animated: true)
 
     }
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        if self.didScroll2 != nil {
+            self.didScroll2!(false)
+        }
+    }
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if self.didScroll2 != nil {
+            self.didScroll2!(true)
+        }
+    }
     
     var didScroll : Blockkk?
+    var didScroll2 : Blockkk2?
     var titleView : testPageTitleView!
     var viewControllers : [UIViewController] = {
         return [firstViewController(),secondViewController(),thirtyViewController()]
@@ -58,14 +77,16 @@ class testTbViewCell: UITableViewCell ,UIScrollViewDelegate{
         return ["hehe","haha","enen"]
     }()
     
+    private var count = 0 ;
     override func layoutSubviews() {
         super.layoutSubviews()
-        scroll.frame=bounds
-        scroll.contentSize=CGSize.init(width: bounds.width*CGFloat(titles.count), height: 0)
-        titleView.frame=CGRect.init(x: 0, y: 0, width: bounds.width, height: titleHeight)
-        
-        scrollViewDidEndScrollingAnimation(scroll)
-
+        if count == 0 {
+            scroll.frame=bounds
+            scroll.contentSize=CGSize.init(width: bounds.width*CGFloat(titles.count), height: 0)
+            titleView.frame=CGRect.init(x: 0, y: 0, width: bounds.width, height: titleHeight)
+            count += 1
+            scrollViewDidEndScrollingAnimation(scroll)
+        }
     }
 
     private func setUpUI()
@@ -85,7 +106,6 @@ class testTbViewCell: UITableViewCell ,UIScrollViewDelegate{
         titleView.backgroundColor=UIColor.orange
         contentView.addSubview(titleView)
 
-        
     }
     
 }

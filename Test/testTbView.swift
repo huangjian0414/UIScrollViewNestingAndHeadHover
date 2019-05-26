@@ -14,7 +14,7 @@ class testTbView:  UITableView ,UIGestureRecognizerDelegate{
     }
 }
 
-class testView: UIView ,UITableViewDelegate,UITableViewDataSource{
+class testView: UIView ,UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate{
     
     private var hjTbView : testTbView?
     private var headerHeight : CGFloat = 0.0
@@ -25,7 +25,9 @@ class testView: UIView ,UITableViewDelegate,UITableViewDataSource{
             hjTbView?.tableHeaderView=headerView
         }
     }
-    
+    var viewControllers : [UIViewController] = {
+        return [firstViewController(),secondViewController(),thirtyViewController()]
+    }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -55,8 +57,16 @@ class testView: UIView ,UITableViewDelegate,UITableViewDataSource{
         if scrollView.contentOffset.y > headerHeight && headerHeight != 0 {
             scrollView.contentOffset = CGPoint(x: 0.0, y: headerHeight)
         }
+        if scrollView.contentOffset.y < headerHeight {
+            for vc in viewControllers
+            {
+                if vc.test_scrollView != nil{
+                    vc.test_scrollView?.contentOffset = CGPoint(x: 0, y: 0)//内容scroll重置到顶部
+                }
+            }
+        }
     }
-    
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 1
     }
@@ -64,22 +74,30 @@ class testView: UIView ,UITableViewDelegate,UITableViewDataSource{
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "haha") as! testTbViewCell
         cell.selectionStyle = .none
+        cell.viewControllers = viewControllers;
         cell.didScroll = {(sc) in
-            if sc.contentOffset.y <= 0 {
+            guard sc != nil else {
                 self.canScroll = true
-                sc.contentOffset = .zero
+                return
+            }
+            if sc!.contentOffset.y <= 0 {
+                self.canScroll = true
+                sc?.contentOffset = .zero
             }else
             {
                 let rec = cell.titleView?.convert(cell.titleView!.bounds, to: self)
                 if self.canScroll && rec!.origin.y > 0
                 {
-                    sc.contentOffset = .zero
+                    sc?.contentOffset = .zero
                     self.canScroll=true
                 }else
                 {
                     self.canScroll=false
                 }
             }
+        }
+        cell.didScroll2 = {(isSuperEnable) in
+            self.hjTbView?.isScrollEnabled = isSuperEnable
         }
         return cell
     }

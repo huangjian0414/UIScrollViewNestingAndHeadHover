@@ -16,7 +16,7 @@ class firstViewController :  UIViewController,UITableViewDelegate,UITableViewDat
         super.viewDidLoad()
         view.backgroundColor=UIColor.darkGray
 
-        table = UITableView.init(frame: CGRect.init(x: 0, y: 30, width: view.bounds.width, height: view.bounds.height-30-88), style: .plain)
+        table = UITableView.init(frame: CGRect.init(x: 0, y: 30, width: view.bounds.width, height: view.bounds.height-30-88-34), style: .plain)
         table.delegate=self
         table.dataSource=self
         table.showsVerticalScrollIndicator=false
@@ -28,7 +28,7 @@ class firstViewController :  UIViewController,UITableViewDelegate,UITableViewDat
     }
    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 30
+        return 5
     }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "999")
